@@ -7,7 +7,7 @@ type Event struct {
 	Axis      Axis        `json:"axis"`
 	Action    string      `json:"action"`
 	NextEvent string      `json:"next"`
-	Revert    bool        `json:"needDiff"` 
+	Revert    bool        `json:"needDiff"`
 	Image     image.Image `json:"-"`
 }
 
@@ -24,4 +24,17 @@ type EventGroup struct {
 	Events      []Event  `json:events`
 }
 
+type EventStream struct {
+	Events []*Event
+}
 
+type EventStreamMsg struct {
+	Msg   string
+	Value interface{}
+}
+
+type JsonMsg struct {
+	IsWrite         bool
+	StartEventNames []string
+	EventMap        map[string]*Event
+}

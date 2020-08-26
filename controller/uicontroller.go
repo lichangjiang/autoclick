@@ -16,6 +16,11 @@ func OnStartBtnClick() {
 		ui.ChangeBtnText(con.StartBtnName, "stop")
 		ui.ShowMessage("auto click working...")
 		ui.DisableAllOtherBtn(con.StartBtnName)
+
+		msg := model.EventStreamMsg{
+			Msg: "start",
+		}
+		messagebus.SendMsg(con.GlobalEventObserverName, msg)
 	} else if btnText == "stop" {
 		ui.EnableAllOtherBtn(con.AddEvBtnName)
 		ui.ChangeBtnText(con.StartBtnName, con.StartBtnText)
@@ -25,23 +30,31 @@ func OnStartBtnClick() {
 
 func OnAddEventStreamBtnClick() {
 	btnText := ui.GetBtnText(con.AddESBtnName)
+	fmt.Printf("onAddEventStreamBtn Click text:%s\n", btnText)
 	if btnText == con.AddEsBtnText {
 		ui.ChangeBtnText(con.AddESBtnName, con.FinishBtnText)
 		ui.EnableBtn(con.AddEvBtnName)
 		ui.DisableAllOtherBtn(con.AddESBtnName, con.AddEvBtnName)
 		ui.ShowMessage("click add event button,begin to record click event")
-
+		msg := model.EventStreamMsg{
+			Msg: con.NewStreamMsg,
+		}
+		messagebus.SendMsg(con.EventStreamObserverName, msg)
 	} else if btnText == con.FinishBtnText {
 		ui.DisableBtn(con.AddEvBtnName)
 		ui.EnableAllOtherBtn(con.AddEvBtnName)
 		ui.ChangeBtnText(con.AddESBtnName, con.AddEsBtnText)
 		ui.ShowMessage(con.CommonText)
-
+		msg := model.EventStreamMsg{
+			Msg: con.EndStreamMsg,
+		}
+		messagebus.SendMsg(con.EventStreamObserverName, msg)
 	}
 }
 
 func OnAddEventBtnClick() {
 	btnText := ui.GetBtnText(con.AddEvBtnName)
+	fmt.Printf("onAddEventBtn Click text:%s\n", btnText)
 	if btnText == con.AddEvBtnText {
 		ui.DisableBtn(con.AddESBtnName)
 		ui.ChangeBtnText(con.AddEvBtnName, con.FinishBtnText)
@@ -51,9 +64,24 @@ func OnAddEventBtnClick() {
 	} else if btnText == con.FinishBtnText {
 		ui.EnableBtn(con.AddESBtnName)
 		ui.ChangeBtnText(con.AddEvBtnName, con.AddEvBtnText)
-		ui.ShowMessage("add new event or finish")
-
+		s, err := ui.GetShowMessage()
+		if err != nil {
+			fmt.Printf("GetShowMessage error:%+v\n", err)
+			return
+		}
+		fmt.Println("json:" + s)
+		axis := toAxis([]byte(s))
+		if axis == nil {
+			return
+		}
 		messagebus.SendMsg(con.HookObserverName, "stop")
+		msg := model.EventStreamMsg{
+			Msg:   con.AddEventMsg,
+			Value: *axis,
+		}
+		messagebus.SendMsg(con.EventStreamObserverName, msg)
+
+		ui.ShowMessage("add new event or finish")
 	}
 }
 

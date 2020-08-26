@@ -2,8 +2,10 @@ package main
 
 import (
 	_ "autoclick/action"
+	"autoclick/constant"
 	con "autoclick/constant"
 	"autoclick/controller"
+	"autoclick/model"
 	"autoclick/pkg/messagebus"
 	"autoclick/ui"
 
@@ -47,6 +49,11 @@ func main() {
 	appWin.SetOnClosed(func() {
 		messagebus.CloseAll()
 	})
+
+	jsonMsg := model.JsonMsg{
+		IsWrite: false,
+	}
+	messagebus.SendMsg(constant.JsonFileObserverName, jsonMsg)
 
 	appWin.ShowAndRun()
 }

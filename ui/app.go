@@ -59,6 +59,7 @@ func DisableAllOtherBtn(keepBtnNames ...string) {
 }
 
 func DisableBtn(btnName string) {
+	fmt.Printf("disable btn:%s\n", btnName)
 	if appIns.btnMap[btnName] != nil {
 		appIns.btnMap[btnName].Disable()
 	}
@@ -70,16 +71,17 @@ func EnableBtn(btnName string) {
 	}
 }
 
-func EnableAllOtherBtn(keepBtnNames ...string) {
+func EnableAllOtherBtn(skipBtnNames ...string) {
 	for name, btn := range appIns.btnMap {
-		keep := false
-		for _, keepName := range keepBtnNames {
-			if name == keepName {
-				keep = true
+		skip := false
+		for _, skipName := range skipBtnNames {
+			if name == skipName {
+				skip = true
 				break
 			}
 		}
-		if keep {
+		if !skip {
+			fmt.Printf("enable btn:%s\n", name)
 			btn.Enable()
 		}
 	}
