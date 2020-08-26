@@ -6,8 +6,13 @@ type messageBus struct {
 	channelMap map[string]chan interface{}
 }
 
-var bus = messageBus{
-	make(map[string]chan interface{}),
+var bus *messageBus
+
+func init() {
+	fmt.Println("messageBus init")
+	bus = &messageBus{
+		make(map[string]chan interface{}),
+	}
 }
 
 func RegisterObserver(chanName string, observer Observer) {

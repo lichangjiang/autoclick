@@ -1,25 +1,33 @@
 package ui
 
-type UIMsgObserver struct {
-}
-
-const (
-	StartState                string = "start"
-	StopState                        = "stop"
-	AddEventStreamState              = "addEventStream"
-	FinishAddEventStreamState        = "finishAddEventStream"
+import (
+	con "autoclick/constant"
+	"autoclick/pkg/messagebus"
+	"fmt"
 )
 
-func (ob *UIMsgObserver) OnEvent(event interface{}) {
+type UIStateObserver struct {
+}
+
+
+
+func init() {
+	fmt.Println("uiobserver init")
+
+	ob := &UIStateObserver{}
+	messagebus.RegisterObserver(con.UIStateObserverName, ob)
+}
+
+func (ob *UIStateObserver) OnEvent(event interface{}) {
 	state := event.(string)
 
-	if state == StartState {
+	if state == con.StartState {
 		appIns.isStarted.Store(true)
 		appIns.isAddEventStream.Store(false)
-	} else if state == StopState || state == FinishAddEventStreamState {
+	} else if state == con.StopState || state == con.FinishAddEventStreamState {
 		appIns.isStarted.Store(false)
 		appIns.isAddEventStream.Store(false)
-	} else if state == AddEventStreamState {
+	} else if state == con.AddEventStreamState {
 		appIns.isStarted.Store(false)
 		appIns.isAddEventStream.Store(true)
 

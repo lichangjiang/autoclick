@@ -70,6 +70,21 @@ func EnableBtn(btnName string) {
 	}
 }
 
+func EnableAllOtherBtn(keepBtnNames ...string) {
+	for name, btn := range appIns.btnMap {
+		keep := false
+		for _, keepName := range keepBtnNames {
+			if name == keepName {
+				keep = true
+				break
+			}
+		}
+		if keep {
+			btn.Enable()
+		}
+	}
+}
+
 func EnableAllBtn() {
 	for _, btn := range appIns.btnMap {
 		btn.Enable()
@@ -98,4 +113,12 @@ func ShowMessage(msg string) {
 	if appIns.messageLabel != nil {
 		appIns.messageLabel.SetText(msg)
 	}
+}
+
+func GetShowMessage() (string, error) {
+	if appIns.messageLabel != nil {
+		return appIns.messageLabel.Text, nil
+	}
+
+	return "", fmt.Errorf("fail to get show message")
 }

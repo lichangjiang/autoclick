@@ -1,7 +1,10 @@
 package main
 
 import (
+	_ "autoclick/action"
+	con "autoclick/constant"
 	"autoclick/controller"
+	"autoclick/pkg/messagebus"
 	"autoclick/ui"
 
 	"fyne.io/fyne/app"
@@ -14,13 +17,13 @@ func main() {
 
 	msgLabel := widget.NewLabel("Welcome to autoclick")
 
-	startBtn := widget.NewButton(ui.StartBtnText,controller.OnStartBtnClick)
+	startBtn := widget.NewButton(con.StartBtnText, controller.OnStartBtnClick)
 
-	addESBtn := widget.NewButton(ui.AddEsBtnText,controller.OnAddEventStreamBtnClick)
+	addESBtn := widget.NewButton(con.AddEsBtnText, controller.OnAddEventStreamBtnClick)
 
-	addEvBtn := widget.NewButton(ui.AddEvBtnText,controller.OnAddEventBtnClick)
+	addEvBtn := widget.NewButton(con.AddEvBtnText, controller.OnAddEventBtnClick)
 
-	resetBtn := widget.NewButton(ui.ResetBtnText,controller.OnResetBtnClick)
+	resetBtn := widget.NewButton(con.ResetBtnText, controller.OnResetBtnClick)
 
 	appWin.SetContent(widget.NewVBox(
 		msgLabel,
@@ -35,10 +38,15 @@ func main() {
 	ui.SetApp(myapp)
 	ui.SetWindow(appWin)
 	ui.SetMessageLabel(msgLabel)
-	ui.SetBtn(ui.StartBtnName,startBtn)
-	ui.SetBtn(ui.AddESBtnName,addESBtn)
-	ui.SetBtn(ui.AddEvBtnName,addEvBtn)
-	ui.SetBtn(ui.ResetBtnName,resetBtn)
+	ui.SetBtn(con.StartBtnName, startBtn)
+	ui.SetBtn(con.AddESBtnName, addESBtn)
+	ui.SetBtn(con.AddEvBtnName, addEvBtn)
+	addEvBtn.Disable()
+	ui.SetBtn(con.ResetBtnName, resetBtn)
+
+	appWin.SetOnClosed(func() {
+		messagebus.CloseAll()
+	})
 
 	appWin.ShowAndRun()
 }

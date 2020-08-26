@@ -23,3 +23,5 @@ type EventGroup struct {
 	EndEvents   []string `json:endEvents`
 	Events      []Event  `json:events`
 }
+
+
