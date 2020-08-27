@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 func init() {
@@ -39,7 +40,8 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 			for _, v := range msg.EventMap {
 				eg.Events = append(eg.Events, *v)
 			}
-			_, err := copy("event.json", "pre_event.json")
+			dstr := time.Now().Format(time.RFC3339)
+			_, err := copy("event.json", "pre_event_"+dstr+".json")
 			if err != nil {
 				fmt.Printf("fail to copy event.json to pre_event.json:%+v\n", err)
 			}

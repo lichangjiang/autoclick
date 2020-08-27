@@ -60,8 +60,8 @@ func (ob *EventStreamObserver) OnEvent(ev interface{}) {
 			pre.NextEvent = event.Name
 		}
 		ob.currentEventStream.Events = append(ob.currentEventStream.Events, event)
-	} else if msg.Msg == constant.NewStreamMsg {
-		fmt.Println("EventStreamObserver NewStream")
+	} else if msg.Msg == constant.NewStreamMsg || msg.Msg == "reset" {
+		fmt.Printf("EventStreamObserver %s\n", msg.Msg)
 		cs := &model.EventStream{
 			Events: []*model.Event{},
 		}

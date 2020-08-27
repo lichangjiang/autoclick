@@ -6,12 +6,16 @@ import (
 	"autoclick/model"
 	"autoclick/pkg/messagebus"
 	"fmt"
+	"sync/atomic"
 
 	hook "github.com/robotn/gohook"
 )
 
+var state atomic.Value
+
 func init() {
 	fmt.Println("mouseaction init")
+	state.Store("init")
 	mob := &MouseEventObserver{}
 	messagebus.RegisterObserver(con.MouseEventObserverName, mob)
 
@@ -35,27 +39,30 @@ type HookObserver struct {
 }
 
 func (ob *HookObserver) OnEvent(ev interface{}) {
-	state, ok := ev.(string)
+	s, ok := ev.(string)
 
 	if !ok {
 		return
 	}
-	if state == "start" && !ob.isStarted {
+	if s == "start" && !ob.isStarted {
 		channel := hook.Start()
 		ob.isStarted = true
 		messagebus.SendMsg(con.MouseEventObserverName, channel)
-	} else if state == "stop" && ob.isStarted {
+	} else if s == "stop" && ob.isStarted {
 		hook.End()
+		state.Store("init")
 		ob.isStarted = false
+	} else if s == "reset" {
+		state.Store("init")
 	}
 }
 
 func checkMouseEvent(channel chan hook.Event) {
-	state := "init"
 	for ev := range channel {
 		//fmt.Printf("%+v\n", ev)
-		if ev.Kind == hook.MouseDrag && state == "init" {
-			state = "mouseDown"
+		s := state.Load().(string)
+		if ev.Kind == hook.MouseDrag && s == "init" {
+			state.Store("mouseDown")
 			axis := model.Axis{
 				Left:   int(ev.X),
 				Top:    int(ev.Y),
@@ -63,7 +70,7 @@ func checkMouseEvent(channel chan hook.Event) {
 				Bottom: 0,
 			}
 			controller.OnMouseDown(axis)
-		} else if ev.Kind == hook.MouseDrag && state == "mouseDown" {
+		} else if ev.Kind == hook.MouseDrag && s == "mouseDown" {
 			axis := model.Axis{
 				Right:  int(ev.X),
 				Bottom: int(ev.Y),
@@ -71,8 +78,8 @@ func checkMouseEvent(channel chan hook.Event) {
 				Top:    0,
 			}
 			controller.OnMouseMove(axis)
-		} else if ev.Kind == hook.MouseDown && state == "mouseDown" {
-			state = "stop"
+		} else if ev.Kind == hook.MouseDown && s == "mouseDown" {
+			state.Store("stop")
 			axis := model.Axis{
 				Right:  int(ev.X),
 				Bottom: int(ev.Y),

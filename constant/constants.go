@@ -12,6 +12,9 @@ const (
 	ResetBtnText  string = "reset"
 	FinishBtnText string = "finish"
 	CommonText    string = "click what you want"
+
+	ResetEventStreamBtnText string = "reset event stream"
+	ResetEventBtxText       string = "reset event"
 )
 
 const (

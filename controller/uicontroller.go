@@ -6,6 +6,7 @@ import (
 	"autoclick/pkg/messagebus"
 	"autoclick/ui"
 	"fmt"
+	"strings"
 
 	"encoding/json"
 )
@@ -22,18 +23,18 @@ func OnStartBtnClick() {
 		}
 		messagebus.SendMsg(con.GlobalEventObserverName, msg)
 
-		messagebus.SendMsg(con.UIStateObserverName,con.StartState)
+		messagebus.SendMsg(con.UIStateObserverName, con.StartState)
 	} else if btnText == "stop" {
 		ui.EnableAllOtherBtn(con.AddEvBtnName)
 		ui.ChangeBtnText(con.StartBtnName, con.StartBtnText)
 		ui.ShowMessage("auto click stop")
-		
-		messagebus.SendMsg(con.UIStateObserverName,con.StopState)
 
-		workMsg := model.WorkMsg {
-			Msg : con.StopState,
+		messagebus.SendMsg(con.UIStateObserverName, con.StopState)
+
+		workMsg := model.WorkMsg{
+			Msg: con.StopState,
 		}
-		messagebus.SendMsg(con.WorkObserverName,workMsg)
+		messagebus.SendMsg(con.WorkObserverName, workMsg)
 	}
 }
 
@@ -43,7 +44,9 @@ func OnAddEventStreamBtnClick() {
 	if btnText == con.AddEsBtnText {
 		ui.ChangeBtnText(con.AddESBtnName, con.FinishBtnText)
 		ui.EnableBtn(con.AddEvBtnName)
-		ui.DisableAllOtherBtn(con.AddESBtnName, con.AddEvBtnName)
+		ui.DisableBtn(con.StartBtnName)
+		ui.ChangeBtnText(con.ResetBtnName, con.ResetEventStreamBtnText)
+		//ui.DisableAllOtherBtn(con.AddESBtnName, con.AddEvBtnName)
 		ui.ShowMessage("click add event button,begin to record click event")
 		msg := model.EventStreamMsg{
 			Msg: con.NewStreamMsg,
@@ -53,6 +56,7 @@ func OnAddEventStreamBtnClick() {
 		ui.DisableBtn(con.AddEvBtnName)
 		ui.EnableAllOtherBtn(con.AddEvBtnName)
 		ui.ChangeBtnText(con.AddESBtnName, con.AddEsBtnText)
+		ui.ChangeBtnText(con.ResetBtnName, con.ResetBtnText)
 		ui.ShowMessage(con.CommonText)
 		msg := model.EventStreamMsg{
 			Msg: con.EndStreamMsg,
@@ -67,35 +71,52 @@ func OnAddEventBtnClick() {
 	if btnText == con.AddEvBtnText {
 		ui.DisableBtn(con.AddESBtnName)
 		ui.ChangeBtnText(con.AddEvBtnName, con.FinishBtnText)
+		ui.ChangeBtnText(con.ResetBtnName, con.ResetEventBtxText)
 		ui.ShowMessage("left: ,top: ,right ,bottom ")
 
 		messagebus.SendMsg(con.HookObserverName, "start")
 	} else if btnText == con.FinishBtnText {
 		ui.EnableBtn(con.AddESBtnName)
 		ui.ChangeBtnText(con.AddEvBtnName, con.AddEvBtnText)
+		ui.ChangeBtnText(con.ResetBtnName, con.ResetEventStreamBtnText)
 		s, err := ui.GetShowMessage()
 		if err != nil {
 			fmt.Printf("GetShowMessage error:%+v\n", err)
 			return
 		}
 		fmt.Println("json:" + s)
-		axis := toAxis([]byte(s))
-		if axis == nil {
-			return
+		if !strings.HasPrefix(s, "left") {
+			axis := toAxis([]byte(s))
+			if axis != nil {
+				messagebus.SendMsg(con.HookObserverName, "stop")
+				msg := model.EventStreamMsg{
+					Msg:   con.AddEventMsg,
+					Value: *axis,
+				}
+				messagebus.SendMsg(con.EventStreamObserverName, msg)
+			}
 		}
-		messagebus.SendMsg(con.HookObserverName, "stop")
-		msg := model.EventStreamMsg{
-			Msg:   con.AddEventMsg,
-			Value: *axis,
-		}
-		messagebus.SendMsg(con.EventStreamObserverName, msg)
-
 		ui.ShowMessage("add new event or finish")
 	}
 }
 
 func OnResetBtnClick() {
-	ui.ShowMessage("reset setting")
+	btxText := ui.GetBtnText(con.ResetBtnName)
+
+	if btxText == con.ResetBtnText {
+		ui.ShowMessage("reset setting")
+		messagebus.SendMsg(con.GlobalEventObserverName, model.EventStreamMsg{
+			Msg: con.ResetEventStream,
+		})
+	} else if btxText == con.ResetEventStreamBtnText {
+		ui.ShowMessage("reset current event stream")
+		messagebus.SendMsg(con.EventStreamObserverName, model.EventStreamMsg{
+			Msg: "reset",
+		})
+	} else if btxText == con.ResetEventBtxText {
+		ui.ShowMessage("left: ,top: ,right ,bottom ")
+		messagebus.SendMsg(con.HookObserverName, "reset")
+	}
 }
 
 func OnMouseDown(axis model.Axis) {
