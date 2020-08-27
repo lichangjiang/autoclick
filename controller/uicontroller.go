@@ -21,10 +21,19 @@ func OnStartBtnClick() {
 			Msg: "start",
 		}
 		messagebus.SendMsg(con.GlobalEventObserverName, msg)
+
+		messagebus.SendMsg(con.UIStateObserverName,con.StartState)
 	} else if btnText == "stop" {
 		ui.EnableAllOtherBtn(con.AddEvBtnName)
 		ui.ChangeBtnText(con.StartBtnName, con.StartBtnText)
 		ui.ShowMessage("auto click stop")
+		
+		messagebus.SendMsg(con.UIStateObserverName,con.StopState)
+
+		workMsg := model.WorkMsg {
+			Msg : con.StopState,
+		}
+		messagebus.SendMsg(con.WorkObserverName,workMsg)
 	}
 }
 

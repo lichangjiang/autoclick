@@ -110,13 +110,23 @@ func (ob *globalEventObserver) OnEvent(ev interface{}) {
 		ob.eventMap = map[string]*model.Event{}
 	} else if msg.Msg == "start" {
 		jsonMsg := model.JsonMsg{
-			IsWrite:         true,
-			StartEventNames: ob.startEventNames,
-			EventMap:        ob.eventMap,
+			IsWrite: true,
+			EventMsg: model.EventMsg{
+				StartEventNames: ob.startEventNames,
+				EventMap:        ob.eventMap,
+			},
 		}
 
 		messagebus.SendMsg(constant.JsonFileObserverName, jsonMsg)
 
 		//启动监控点击
+		workMsg := model.WorkMsg{
+			Msg: constant.StartState,
+			EventMsg: model.EventMsg{
+				StartEventNames: ob.startEventNames,
+				EventMap:        ob.eventMap,
+			},
+		}
+		messagebus.SendMsg(constant.WorkObserverName, workMsg)
 	}
 }

@@ -25,6 +25,19 @@ func init() {
 	appIns.btnMap = make(map[string]*widget.Button)
 }
 
+func GetCurrentState() string {
+	isStarted, ok := appIns.isStarted.Load().(bool)
+	isAddEventStream, ok2 := appIns.isAddEventStream.Load().(bool)
+
+	if ok && isStarted {
+		return "start"
+	} else if ok2 && isAddEventStream {
+		return "addEventStream"
+	} else {
+		return "stop"
+	}
+}
+
 func SetApp(fyneApp fyne.App) {
 	appIns.fyneApp = fyneApp
 }

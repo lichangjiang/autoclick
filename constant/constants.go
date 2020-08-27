@@ -42,3 +42,7 @@ const (
 const (
 	JsonFileObserverName string = "JsonFileObserver"
 )
+
+const (
+	WorkObserverName string = "workObserver"
+)

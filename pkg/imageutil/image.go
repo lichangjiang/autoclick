@@ -1,9 +1,9 @@
-package pkg
+package imageutil
 
 import (
+	"autoclick/model"
 	"fmt"
 	"image"
-	"autoclick/model"
 	"time"
 
 	//	"github.com/go-vgo/robotgo"
@@ -91,9 +91,10 @@ func StartImageCheck(events map[string]model.Event,
 			fmt.Printf("%s event work\n", event.Name)
 			x := (event.Axis.Left + event.Axis.Right) / 2
 			y := (event.Axis.Top + event.Axis.Bottom) / 2
+			ox, oy := robotgo.GetMousePos()
 			robotgo.MoveMouse(x, y)
 			robotgo.MouseClick()
-			robotgo.MoveMouse(0, 0)
+			robotgo.MoveMouse(ox, oy)
 			time.Sleep(100 * time.Millisecond)
 			eventName = event.NextEvent
 			if eventName != "" {
@@ -106,7 +107,7 @@ func StartImageCheck(events map[string]model.Event,
 			robotgo.MoveMouse(x, y)
 			robotgo.MouseClick()
 			robotgo.MoveMouse(0, 0)
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			eventName = event.NextEvent
 			if eventName != "" {
 				goto LOOP
@@ -114,7 +115,6 @@ func StartImageCheck(events map[string]model.Event,
 		} else {
 			fmt.Printf("%s event not work\n", event.Name)
 		}
-
 	}
 	return nil
 }

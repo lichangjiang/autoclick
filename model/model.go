@@ -33,8 +33,17 @@ type EventStreamMsg struct {
 	Value interface{}
 }
 
-type JsonMsg struct {
-	IsWrite         bool
+type EventMsg struct {
 	StartEventNames []string
 	EventMap        map[string]*Event
+}
+
+type JsonMsg struct {
+	IsWrite bool
+	EventMsg
+}
+
+type WorkMsg struct {
+	Msg string
+	EventMsg
 }

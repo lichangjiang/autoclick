@@ -72,7 +72,7 @@ func checkMouseEvent(channel chan hook.Event) {
 			}
 			controller.OnMouseMove(axis)
 		} else if ev.Kind == hook.MouseDown && state == "mouseDown" {
-			state = "init"
+			state = "stop"
 			axis := model.Axis{
 				Right:  int(ev.X),
 				Bottom: int(ev.Y),
@@ -80,9 +80,6 @@ func checkMouseEvent(channel chan hook.Event) {
 				Top:    0,
 			}
 			controller.OnMouseUp(axis)
-		} else {
-			state = "init"
-			//controller.OnUnknownMouseState(ev.String())
 		}
 	}
 }
