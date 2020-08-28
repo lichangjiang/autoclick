@@ -58,12 +58,16 @@ func (ob *workObserver) OnEvent(ev interface{}) {
 			for {
 				if ob.isStarted {
 					fmt.Println("image check goroutine start")
-					err := imageutil.StartImageCheck(eventMap, startEventNames)
-
-					if err != nil {
-						fmt.Printf("checkImage error:%+v\n", err)
+					for k, _ := range startEventNames {
+						fmt.Printf("one epoch start,start event:%s\n", k)
+						if err := imageutil.StartOneEventStreamCheck(eventMap, k); err != nil {
+							fmt.Printf("check image error:%+v\n", err)
+						}
+						time.Sleep(3 * time.Second)
+						if !ob.isStarted {
+							break
+						}
 					}
-					time.Sleep(3 * time.Second)
 				} else {
 					fmt.Println("image check goroutine stop")
 					return
