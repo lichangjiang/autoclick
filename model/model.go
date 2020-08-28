@@ -40,6 +40,7 @@ type EventMsg struct {
 
 type JsonMsg struct {
 	IsWrite bool
+	NeedCopy bool
 	EventMsg
 }
 

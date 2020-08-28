@@ -39,6 +39,7 @@ const (
 
 	GlobalEventObserverName string = "globalEventObserver"
 	AddEventStream          string = "addEventStream"
+	FileAddEventStream      string = "fileAddEventStream"
 	ResetEventStream        string = "resetEventStream"
 )
 

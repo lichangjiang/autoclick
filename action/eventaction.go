@@ -21,6 +21,7 @@ func init() {
 	gob := &globalEventObserver{
 		[]string{},
 		map[string]*model.Event{},
+		false,
 	}
 	messagebus.RegisterObserver(constant.GlobalEventObserverName, gob)
 }
@@ -69,7 +70,7 @@ func (ob *EventStreamObserver) OnEvent(ev interface{}) {
 	} else if msg.Msg == constant.EndStreamMsg {
 		cs := ob.currentEventStream
 		ob.currentEventStream = nil
-		if cs != nil {
+		if cs != nil && len(cs.Events) > 0 {
 			newMsg := model.EventStreamMsg{
 				Msg:   constant.AddEventStream,
 				Value: cs,
@@ -82,6 +83,7 @@ func (ob *EventStreamObserver) OnEvent(ev interface{}) {
 type globalEventObserver struct {
 	startEventNames []string
 	eventMap        map[string]*model.Event
+	isChanged       bool
 }
 
 func (ob *globalEventObserver) OnEvent(ev interface{}) {
@@ -92,7 +94,8 @@ func (ob *globalEventObserver) OnEvent(ev interface{}) {
 		return
 	}
 
-	if msg.Msg == constant.AddEventStream {
+	if msg.Msg == constant.AddEventStream ||
+		msg.Msg == constant.FileAddEventStream {
 		es, ok := msg.Value.(*model.EventStream)
 		if !ok {
 			fmt.Printf("EventStreamMsg Value fail cast to *model.EventStream")
@@ -105,12 +108,17 @@ func (ob *globalEventObserver) OnEvent(ev interface{}) {
 			}
 			ob.eventMap[event.Name] = event
 		}
+		if msg.Msg == constant.AddEventStream {
+			ob.isChanged = true
+		}
 	} else if msg.Msg == constant.ResetEventStream {
 		ob.startEventNames = []string{}
 		ob.eventMap = map[string]*model.Event{}
+		ob.isChanged = true
 	} else if msg.Msg == "start" {
 		jsonMsg := model.JsonMsg{
-			IsWrite: true,
+			IsWrite:  true,
+			NeedCopy: ob.isChanged,
 			EventMsg: model.EventMsg{
 				StartEventNames: ob.startEventNames,
 				EventMap:        ob.eventMap,

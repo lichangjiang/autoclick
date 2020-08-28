@@ -41,11 +41,14 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 				eg.Events = append(eg.Events, *v)
 			}
 			dstr := time.Now().Format(time.RFC3339)
-			_, err := copy("event.json", "pre_event_"+dstr+".json")
-			if err != nil {
-				fmt.Printf("fail to copy event.json to pre_event.json:%+v\n", err)
+			if msg.NeedCopy {
+				_, err := copy("event.json", "pre_event_"+dstr+".json")
+				if err != nil {
+					fmt.Printf("fail to copy event.json to pre_event.json:%+v\n", err)
+				}
 			}
-			err = writeEventJson(eg)
+
+			err := writeEventJson(eg)
 			if err != nil {
 				fmt.Printf("fail to write event.json:%+v\n", err)
 			}
@@ -83,7 +86,7 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 				fmt.Printf("event name:%s\n not exist", name)
 			}
 			msg := model.EventStreamMsg{
-				Msg:   constant.AddEventStream,
+				Msg:   constant.FileAddEventStream,
 				Value: eventStream,
 			}
 			messagebus.SendMsg(constant.GlobalEventObserverName, msg)
