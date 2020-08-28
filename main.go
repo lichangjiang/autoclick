@@ -52,9 +52,12 @@ func main() {
 
 	jsonMsg := model.JsonMsg{
 		IsReadJson: true,
-		IsDir:      true,
 	}
 	messagebus.SendMsg(constant.JsonFileObserverName, jsonMsg)
+
+	messagebus.SendMsg(constant.JsonFileObserverName, model.JsonMsg{
+		IsDir: true,
+	})
 
 	appWin.ShowAndRun()
 }

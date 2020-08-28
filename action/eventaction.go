@@ -114,10 +114,21 @@ func (ob *globalEventObserver) OnEvent(ev interface{}) {
 			ob.isChanged = true
 		}
 	} else if msg.Msg == constant.ResetEventStream {
+		/*for _, v := range ob.eventMap {
+			messagebus.SendMsg(constant.JsonFileObserverName, model.JsonMsg{
+				IsDeleteImage: true,
+				ImageFileName: v.ImageFile,
+			})
+		}*/
 		ob.startEventNames = []string{}
 		ob.eventMap = map[string]*model.Event{}
 		ob.isChanged = true
 	} else if msg.Msg == "start" {
+		if len(ob.startEventNames) == 0 ||
+			len(ob.eventMap) == 0 {
+			controller.OnStartBtnClick()
+			return
+		}
 		var err error
 		ob.eventMap, err = imageutil.CreateImageForEvents(ob.eventMap)
 		if err != nil {

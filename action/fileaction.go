@@ -121,12 +121,21 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 			file, err := os.Create(fullPath)
 			defer file.Close()
 			if err != nil {
-				fmt.Printf("cannot create %s ,error:%+v\n", fullPath, file)
+				fmt.Printf("cannot create %s ,error:%+v\n", fullPath, err)
 				return
 			}
 			err = png.Encode(file, img)
 			if err != nil {
-				fmt.Printf("cannot encode image %s,error:%+v\n", fullPath, file)
+				fmt.Printf("cannot encode image %s,error:%+v\n", fullPath, err)
+			}
+		}
+	}
+	if msg.IsDeleteImage {
+		if msg.ImageFileName != "" {
+			err := os.Remove(filepath.Join("snapshot", msg.ImageFileName))
+			if err != nil {
+				fmt.Printf("cannot delete image %s,error:%+v\n", msg.ImageFileName, err)
+				return
 			}
 		}
 	}

@@ -48,6 +48,7 @@ type JsonMsg struct {
 	IsImage       bool
 	Image         image.Image
 	ImageFileName string
+	IsDeleteImage bool
 }
 
 type WorkMsg struct {
