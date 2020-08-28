@@ -6,9 +6,15 @@ import (
 	"autoclick/pkg/messagebus"
 	"encoding/json"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	"image/png"
+	_ "image/png"
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -55,7 +61,8 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 		} else {
 			fmt.Println("jsonFileObserver got error data and fail to write json file")
 		}
-	} else {
+	}
+	if msg.IsReadJson {
 		eg, err := readEventJson()
 		if err != nil {
 			fmt.Printf("fail to read event.json %+v\n", err)
@@ -67,6 +74,14 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 		}
 		eventMap := map[string]model.Event{}
 		for _, ev := range eg.Events {
+			if ev.ImageFile != "" {
+				img, err := readImage(filepath.Join("snapshot", ev.ImageFile))
+				if err != nil {
+					fmt.Printf("%+v\n", err)
+				} else {
+					ev.Image = img
+				}
+			}
 			eventMap[ev.Name] = ev
 		}
 
@@ -90,6 +105,29 @@ func (ob *jsonFileObserver) OnEvent(ev interface{}) {
 				Value: eventStream,
 			}
 			messagebus.SendMsg(constant.GlobalEventObserverName, msg)
+		}
+	}
+	if msg.IsDir {
+		dirPath := "snapshot"
+		if dirPath != "" {
+			dirNotExistCreate(dirPath)
+		}
+	}
+	if msg.IsImage {
+		fileName := msg.ImageFileName
+		img := msg.Image
+		if img != nil && fileName != "" {
+			fullPath := filepath.Join("snapshot", fileName)
+			file, err := os.Create(fullPath)
+			defer file.Close()
+			if err != nil {
+				fmt.Printf("cannot create %s ,error:%+v\n", fullPath, file)
+				return
+			}
+			err = png.Encode(file, img)
+			if err != nil {
+				fmt.Printf("cannot encode image %s,error:%+v\n", fullPath, file)
+			}
 		}
 	}
 }
@@ -117,9 +155,16 @@ func writeEventJson(eg *model.EventGroup) error {
 		return err
 	}
 
-	err = ioutil.WriteFile("event.json", b, 0644)
+	err = ioutil.WriteFile("event.json", b, os.ModePerm)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func dirNotExistCreate(path string) error {
+	if !Exists(path) {
+		return os.Mkdir(path, os.ModePerm)
 	}
 	return nil
 }
@@ -133,6 +178,23 @@ func Exists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func readImage(path string) (image.Image, error) {
+	if Exists(path) {
+		f, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		img, _, err := image.Decode(f)
+		if err != nil {
+			err = fmt.Errorf("%s decode error:%+v", path, err)
+		}
+		return img, err
+	} else {
+		return nil, fmt.Errorf("%s not exist", path)
+	}
 }
 
 func copy(src, dst string) (int64, error) {

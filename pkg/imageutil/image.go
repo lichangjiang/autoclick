@@ -51,16 +51,17 @@ func ImageSimiliar(a, b image.Image) bool {
 	}
 }
 
-func CreateImageForEvents(events map[string]model.Event) (map[string]model.Event, error) {
+func CreateImageForEvents(events map[string]*model.Event) (map[string]*model.Event, error) {
 	for _, event := range events {
-		img, err := CaptureImage(event.Axis.Left,
-			event.Axis.Top, event.Axis.Right, event.Axis.Bottom)
-
-		if err != nil {
-			return nil, err
+		if event.Image == nil {
+			img, err := CaptureImage(event.Axis.Left,
+				event.Axis.Top, event.Axis.Right, event.Axis.Bottom)
+			if err != nil {
+				return nil, err
+			}
+			event.Image = img
 		}
 
-		event.Image = img
 		events[event.Name] = event
 	}
 

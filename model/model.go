@@ -9,6 +9,7 @@ type Event struct {
 	NextEvent string      `json:"next"`
 	Revert    bool        `json:"needDiff"`
 	Image     image.Image `json:"-"`
+	ImageFile string      `json:"imageFile"`
 }
 
 type Axis struct {
@@ -39,9 +40,14 @@ type EventMsg struct {
 }
 
 type JsonMsg struct {
-	IsWrite bool
-	NeedCopy bool
+	IsWrite    bool
+	IsReadJson bool
+	NeedCopy   bool
 	EventMsg
+	IsDir         bool
+	IsImage       bool
+	Image         image.Image
+	ImageFileName string
 }
 
 type WorkMsg struct {

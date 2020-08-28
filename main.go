@@ -51,7 +51,8 @@ func main() {
 	})
 
 	jsonMsg := model.JsonMsg{
-		IsWrite: false,
+		IsReadJson: true,
+		IsDir:      true,
 	}
 	messagebus.SendMsg(constant.JsonFileObserverName, jsonMsg)
 

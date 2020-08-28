@@ -46,11 +46,7 @@ func (ob *workObserver) OnEvent(ev interface{}) {
 			eventMap[k] = *v
 		}
 
-		eventMap, err := imageutil.CreateImageForEvents(eventMap)
-		if err != nil {
-			fmt.Printf("fail to createImage for events:%+v\n", err)
-			return
-		}
+		
 		ob.isStarted = true
 
 		fmt.Println("WorkObserver isStarted change to true")

@@ -98,3 +98,4 @@ fabric.properties
 *.bak
 event.json
 pre_event*.json
+snapshot/

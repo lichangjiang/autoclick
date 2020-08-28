@@ -2,7 +2,9 @@ package action
 
 import (
 	"autoclick/constant"
+	"autoclick/controller"
 	"autoclick/model"
+	"autoclick/pkg/imageutil"
 	"autoclick/pkg/messagebus"
 	"fmt"
 	"strconv"
@@ -116,6 +118,25 @@ func (ob *globalEventObserver) OnEvent(ev interface{}) {
 		ob.eventMap = map[string]*model.Event{}
 		ob.isChanged = true
 	} else if msg.Msg == "start" {
+		var err error
+		ob.eventMap, err = imageutil.CreateImageForEvents(ob.eventMap)
+		if err != nil {
+			fmt.Printf("fail to createImage for events:%+v\n", err)
+			controller.OnStartBtnClick()
+			return
+		}
+
+		for _, ev := range ob.eventMap {
+			if ev.ImageFile == "" {
+				ev.ImageFile = ev.Name + ".png"
+			}
+			messagebus.SendMsg(constant.JsonFileObserverName, model.JsonMsg{
+				IsImage:       true,
+				Image:         ev.Image,
+				ImageFileName: ev.ImageFile,
+			})
+		}
+
 		jsonMsg := model.JsonMsg{
 			IsWrite:  true,
 			NeedCopy: ob.isChanged,
