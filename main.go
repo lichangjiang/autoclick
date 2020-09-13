@@ -1,63 +1,42 @@
 package main
 
 import (
-	_ "autoclick/action"
-	"autoclick/constant"
-	con "autoclick/constant"
-	"autoclick/controller"
-	"autoclick/model"
-	"autoclick/pkg/messagebus"
-	"autoclick/ui"
+	"autoclick/cmd"
+	//"os"
 
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/widget"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
+var rootCmd = &cobra.Command{
+	Use:    "autoclick",
+	Hidden: true,
+}
+
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	/*file, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if err == nil {
+		log.SetOutput(file)
+	} else {
+		log.SetOutput(os.Stdout)
+		log.Info("Failed to log to file")
+	}*/
+	// Only log the warning severity or above.
+	log.SetLevel(log.InfoLevel)
+
+	rootCmd.AddCommand(cmd.ServerCmd)
+}
+
 func main() {
-	myapp := app.New()
-	appWin := myapp.NewWindow("auto click")
 
-	msgLabel := widget.NewLabel("Welcome to autoclick")
-
-	startBtn := widget.NewButton(con.StartBtnText, controller.OnStartBtnClick)
-
-	addESBtn := widget.NewButton(con.AddEsBtnText, controller.OnAddEventStreamBtnClick)
-
-	addEvBtn := widget.NewButton(con.AddEvBtnText, controller.OnAddEventBtnClick)
-
-	resetBtn := widget.NewButton(con.ResetBtnText, controller.OnResetBtnClick)
-
-	appWin.SetContent(widget.NewVBox(
-		msgLabel,
-		widget.NewHBox(
-			startBtn,
-			addESBtn,
-			addEvBtn,
-			resetBtn,
-		),
-	))
-
-	ui.SetApp(myapp)
-	ui.SetWindow(appWin)
-	ui.SetMessageLabel(msgLabel)
-	ui.SetBtn(con.StartBtnName, startBtn)
-	ui.SetBtn(con.AddESBtnName, addESBtn)
-	ui.SetBtn(con.AddEvBtnName, addEvBtn)
-	addEvBtn.Disable()
-	ui.SetBtn(con.ResetBtnName, resetBtn)
-
-	appWin.SetOnClosed(func() {
-		messagebus.CloseAll()
-	})
-
-	jsonMsg := model.JsonMsg{
-		IsReadJson: true,
+	if err := rootCmd.Execute(); err != nil {
+		log.WithFields(log.Fields{
+			"launch": "error",
+			"error":  err,
+		}).Fatal("launch fail")
 	}
-	messagebus.SendMsg(constant.JsonFileObserverName, jsonMsg)
-
-	messagebus.SendMsg(constant.JsonFileObserverName, model.JsonMsg{
-		IsDir: true,
-	})
-
-	appWin.ShowAndRun()
 }
