@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"autoclick/internal/routehandler"
+	"autoclick/internal/controllers"
 	"net/http"
 	"os"
 
@@ -32,45 +32,38 @@ func init() {
 }
 
 func handleServer(cmd *cobra.Command, args []string) error {
+
+	/*go func() {
+
+		channel := hook.Start()
+		for ev := range channel {
+			if ev.Kind == hook.MouseDown {
+				log.WithFields(log.Fields{
+					"x": ev.X,
+					"y": ev.Y,
+				}).Info("mouse down")
+			}
+		}
+	}()*/
+
 	if isDebug {
 		log.SetLevel(log.DebugLevel)
 		log.SetOutput(os.Stdout)
-	}
-
-	logger := log.New()
-	file, err := os.OpenFile("gin-logrus.log", os.O_CREATE|os.O_WRONLY, 0666)
-	if err == nil {
-		logger.SetOutput(file)
 	} else {
-		logger.SetOutput(os.Stdout)
-		logger.Info("Failed to log to gin log file")
-	}
-	if isDebug {
-		logger.SetLevel(log.DebugLevel)
-	} else {
-		logger.SetLevel(log.InfoLevel)
+		controllers.TOKEN = token
 	}
 
 	router := gin.Default()
 
-	router.Use(glog.Logger(logger), gin.Recovery())
-
-	if !isDebug {
-		router.Use(func(c *gin.Context) {
-			t := c.Request.Header.Get("AppToken")
-			if t != token {
-				c.AbortWithStatus(403)
-			} else {
-				c.Next()
-			}
-		})
-	}
+	router.Use(glog.Logger(log.StandardLogger()), gin.Recovery())
 
 	router.GET("/hello", func(c *gin.Context) {
 		c.String(http.StatusOK, "world")
 	})
 
-	router.GET("/screeninfo", routehandler.ScreenInfoHandler)
+	controllers.ConfigRouter(router)
+	/*router.GET("/screeninfo", routehandler.ScreenInfoHandler)
 	router.GET("/screencapture/:num", routehandler.ScreenCapture)
+	router.GET("/imgcapture", routehandler.ImageCapture)*/
 	return router.Run("127.0.0.1:" + port)
 }

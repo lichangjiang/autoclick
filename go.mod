@@ -10,6 +10,7 @@ require (
 	github.com/go-vgo/robotgo v0.90.2
 	github.com/kbinani/screenshot v0.0.0-20191211154542-3a185f1ce18f
 	github.com/pingcap/errors v0.11.4
+	github.com/pkg/errors v0.9.1
 	github.com/robotn/gohook v0.30.3
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0

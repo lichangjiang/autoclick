@@ -13,6 +13,10 @@ import (
 	"github.com/go-vgo/robotgo"
 )
 
+func CaptureScreen(num int) (image.Image, error) {
+	return screenshot.CaptureDisplay(num)
+}
+
 func CaptureImage(left, top, right, bottom int) (image.Image, error) {
 
 	min := image.Point{
