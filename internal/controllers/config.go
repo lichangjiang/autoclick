@@ -10,6 +10,7 @@ type Controller interface {
 var controllerList = []Controller{
 	&ScreenController{},
 	&ImageController{},
+	&ActionController{},
 }
 
 func ConfigRouter(router *gin.Engine) {

@@ -4,16 +4,25 @@ import (
 	"autoclick/model"
 	"fmt"
 	"image"
+	"sync"
 	"time"
 
 	//	"github.com/go-vgo/robotgo"
+	"github.com/Nr90/imgsim"
 	"github.com/kbinani/screenshot"
-	"github.com/vitali-fedulov/images"
+	"github.com/sirupsen/logrus"
 
 	"github.com/go-vgo/robotgo"
+	"github.com/google/uuid"
+
+	multierror "github.com/hashicorp/go-multierror"
 )
 
+var ScreenshotMutex sync.Mutex
+
 func CaptureScreen(num int) (image.Image, error) {
+	ScreenshotMutex.Lock()
+	defer ScreenshotMutex.Unlock()
 	return screenshot.CaptureDisplay(num)
 }
 
@@ -34,6 +43,8 @@ func CaptureImage(left, top, right, bottom int) (image.Image, error) {
 		max,
 	}
 
+	ScreenshotMutex.Lock()
+	defer ScreenshotMutex.Unlock()
 	img, err := screenshot.CaptureRect(bounds)
 	if err != nil {
 		return nil, err
@@ -44,11 +55,12 @@ func CaptureImage(left, top, right, bottom int) (image.Image, error) {
 
 func ImageSimiliar(a, b image.Image) bool {
 	// Calculate hashes and image sizes.
-	hashA, imgSizeA := images.Hash(a)
-	hashB, imgSizeB := images.Hash(b)
+
+	hashA := imgsim.AverageHash(a)
+	hashB := imgsim.AverageHash(b)
 
 	// Image comparison.
-	if images.Similar(hashA, hashB, imgSizeA, imgSizeB) {
+	if imgsim.Distance(hashA, hashB) <= 8 {
 		return true
 	} else {
 		return false
@@ -72,60 +84,66 @@ func CreateImageForEvents(events map[string]*model.Event) (map[string]*model.Eve
 	return events, nil
 }
 
-func StartOneEventStreamCheck(events map[string]model.Event, name string) error {
-	eventName := name
-LOOP:
-	event := events[eventName]
-	//fmt.Printf("%s start event\n", event.Name)
-	if event.Image == nil {
-		return fmt.Errorf("can not find event:%s", event.Name)
-	}
-	currentImg, err := CaptureImage(event.Axis.Left,
-		event.Axis.Top, event.Axis.Right, event.Axis.Bottom)
+func StartOneEventStreamCheck(eventGroup []model.Event, eventTimeInterval int) error {
 
-	if err != nil {
-		return err
-	}
+	for _, event := range eventGroup {
+		if event.Image == nil {
+			return fmt.Errorf("event:%s has not image object", event.Name)
+		}
+		currentImg, err := CaptureImage(event.Axis.Left,
+			event.Axis.Top, event.Axis.Right, event.Axis.Bottom)
 
-	similar := ImageSimiliar(event.Image, currentImg)
-	if similar && !event.Revert {
-		fmt.Printf("%s event work\n", event.Name)
-		x := (event.Axis.Left + event.Axis.Right) / 2
-		y := (event.Axis.Top + event.Axis.Bottom) / 2
-		ox, oy := robotgo.GetMousePos()
-		robotgo.MoveMouse(x, y)
-		robotgo.MouseClick()
-		robotgo.MoveMouse(ox, oy)
-		time.Sleep(100 * time.Millisecond)
-		eventName = event.NextEvent
-		if eventName != "" {
-			goto LOOP
+		if err != nil {
+			return err
 		}
-	} else if !similar && event.Revert {
-		fmt.Printf("%s event work\n", event.Name)
-		x := (event.Axis.Left + event.Axis.Right) / 2
-		y := (event.Axis.Top + event.Axis.Bottom) / 2
-		robotgo.MoveMouse(x, y)
-		robotgo.MouseClick()
-		robotgo.MoveMouse(0, 0)
-		time.Sleep(10 * time.Millisecond)
-		eventName = event.NextEvent
-		if eventName != "" {
-			goto LOOP
+
+		similar := ImageSimiliar(event.Image, currentImg)
+		if similar {
+			logrus.WithFields(logrus.Fields{
+				"name":   event.Name,
+				"left":   event.Axis.Left,
+				"top":    event.Axis.Top,
+				"right":  event.Axis.Right,
+				"bottom": event.Axis.Bottom,
+			}).Info("event work")
+
+			x := (event.Axis.Left + event.Axis.Right) / 2
+			y := (event.Axis.Top + event.Axis.Bottom) / 2
+			ox, oy := robotgo.GetMousePos()
+			robotgo.MoveMouse(x, y)
+
+			time.Sleep(time.Duration(eventTimeInterval) * time.Second)
+			robotgo.MouseClick()
+			robotgo.MoveMouse(ox, oy)
+		} else {
+			logrus.WithFields(logrus.Fields{
+				"name":   event.Name,
+				"left":   event.Axis.Left,
+				"top":    event.Axis.Top,
+				"right":  event.Axis.Right,
+				"bottom": event.Axis.Bottom,
+			}).Info("event not work")
+			break
 		}
-	} else {
-		fmt.Printf("%s event not work\n", event.Name)
 	}
 
 	return nil
 }
 
-func StartImageCheck(events map[string]model.Event,
-	startEvents map[string]bool) error {
-	for k, _ := range startEvents {
-		if err := StartOneEventStreamCheck(events, k); err != nil {
-			fmt.Printf("check image error:%+v\n", err)
-		}
+func StartImageCheck(eventGroups [][]model.Event,
+	eventGroupTimeInterval, eventTimeInterval int) error {
+	//加入随机因素
+	eventGroupMap := map[string][]model.Event{}
+	for _, eventGroup := range eventGroups {
+		key := uuid.New().String()
+		eventGroupMap[key] = eventGroup
 	}
-	return nil
+	var errResult error
+	for _, eventGroup := range eventGroupMap {
+		if err := StartOneEventStreamCheck(eventGroup, eventTimeInterval); err != nil {
+			multierror.Append(errResult, err)
+		}
+		time.Sleep(time.Duration(eventGroupTimeInterval) * time.Second)
+	}
+	return errResult
 }

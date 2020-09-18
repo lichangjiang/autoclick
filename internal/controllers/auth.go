@@ -6,7 +6,7 @@ var TOKEN = ""
 
  func authMiddle(c *gin.Context) {
 		t := c.Request.Header.Get("AppToken")
-		if t != TOKEN {
+		if TOKEN != "" && t != TOKEN {
 			c.AbortWithStatus(403)
 		} else {
 			c.Next()

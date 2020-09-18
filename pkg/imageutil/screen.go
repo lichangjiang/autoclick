@@ -7,10 +7,16 @@ import (
 )
 
 func GetScreenNum() int {
+	ScreenshotMutex.Lock()
+	defer ScreenshotMutex.Unlock()
 	return screenshot.NumActiveDisplays()
 }
 
 func GetScreenInfo(num int) model.ScreenInfo {
+
+	ScreenshotMutex.Lock()
+	defer ScreenshotMutex.Unlock()
+
 	bounds := screenshot.GetDisplayBounds(num)
 	return model.ScreenInfo{
 		Num:    num,
