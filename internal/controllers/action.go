@@ -12,6 +12,12 @@ import (
 )
 
 var isStarted atomic.Value
+var startNum atomic.Value
+
+func init() {
+	isStarted.Store(false)
+	startNum.Store(0)
+}
 
 type ActionController struct {
 }
@@ -29,14 +35,16 @@ func (*ActionController) config(rg *gin.RouterGroup) {
 
 func startAction(c *gin.Context) error {
 	started := isStarted.Load()
+	num := startNum.Load().(int)
 	if started == false || started == nil {
 		isStarted.Store(true)
+		startNum.Store(num + 1)
 		startMsg := model.StartMsg{}
 		if err := c.BindJSON(&startMsg); err != nil {
 			return err
 		}
 
-		go action(startMsg.EventGroups, startMsg.EventGroupTimeInterval, startMsg.EventTimeInterval, startMsg.ShowMouse)
+		go action(startMsg.EventGroups, startMsg.EventGroupTimeInterval, startMsg.EventTimeInterval, startMsg.ShowMouse, num+1)
 	}
 	c.JSON(http.StatusOK, struct{}{})
 	return nil
@@ -53,7 +61,7 @@ func stopAction(c *gin.Context) error {
 
 func action(eventGroups [][]model.Event,
 	eventGroupTimeInterval, eventTimeInterval int,
-	showMouse bool) {
+	showMouse bool, oriStartNum int) {
 	logrus.WithFields(logrus.Fields{
 		"eventTimeInterval":      eventTimeInterval,
 		"eventGroupTimeInterval": eventGroupTimeInterval,
@@ -61,6 +69,7 @@ func action(eventGroups [][]model.Event,
 		"showMouse":              showMouse,
 	})
 	newEventGroups := [][]model.Event{}
+
 	for _, eventGroup := range eventGroups {
 		newEventGroup := []model.Event{}
 		for _, event := range eventGroup {
@@ -88,7 +97,8 @@ func action(eventGroups [][]model.Event,
 
 	for {
 		started := isStarted.Load()
-		if started == true {
+		startNum := startNum.Load()
+		if started == true && startNum == oriStartNum {
 			if err := imageutil.StartImageCheck(newEventGroups,
 				eventGroupTimeInterval, eventTimeInterval,
 				showMouse); err != nil {
