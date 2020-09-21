@@ -20,4 +20,5 @@ type StartMsg struct {
 	EventTimeInterval      int       `json:"eventTimeInterval"`
 	EventGroupTimeInterval int       `json:"eventGroupTimeInterval"`
 	EventGroups            [][]Event `json:"eventGroups"`
+	ShowMouse              bool      `json:"showMouse"`
 }

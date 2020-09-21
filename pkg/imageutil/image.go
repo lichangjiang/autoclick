@@ -84,7 +84,9 @@ func CreateImageForEvents(events map[string]*model.Event) (map[string]*model.Eve
 	return events, nil
 }
 
-func StartOneEventStreamCheck(eventGroup []model.Event, eventTimeInterval int) error {
+func StartOneEventStreamCheck(eventGroup []model.Event,
+	eventTimeInterval int,
+	showMouse bool) error {
 
 	for _, event := range eventGroup {
 		if event.Image == nil {
@@ -110,11 +112,18 @@ func StartOneEventStreamCheck(eventGroup []model.Event, eventTimeInterval int) e
 			x := (event.Axis.Left + event.Axis.Right) / 2
 			y := (event.Axis.Top + event.Axis.Bottom) / 2
 			ox, oy := robotgo.GetMousePos()
-			robotgo.MoveMouse(x, y)
 
-			time.Sleep(time.Duration(eventTimeInterval) * time.Second)
-			robotgo.MouseClick()
-			robotgo.MoveMouse(ox, oy)
+			if showMouse {
+				robotgo.MoveMouse(x, y)
+				robotgo.MouseClick()
+				time.Sleep(time.Duration(eventTimeInterval) * time.Second)
+				robotgo.MoveMouse(ox, oy)
+			} else {
+				robotgo.MoveClick(x, y)
+				robotgo.MoveMouse(ox, oy)
+				time.Sleep(time.Duration(eventTimeInterval) * time.Second)
+			}
+
 		} else {
 			logrus.WithFields(logrus.Fields{
 				"name":   event.Name,
@@ -131,7 +140,8 @@ func StartOneEventStreamCheck(eventGroup []model.Event, eventTimeInterval int) e
 }
 
 func StartImageCheck(eventGroups [][]model.Event,
-	eventGroupTimeInterval, eventTimeInterval int) error {
+	eventGroupTimeInterval, eventTimeInterval int,
+	showMouse bool) error {
 	//加入随机因素
 	eventGroupMap := map[string][]model.Event{}
 	for _, eventGroup := range eventGroups {
@@ -140,7 +150,7 @@ func StartImageCheck(eventGroups [][]model.Event,
 	}
 	var errResult error
 	for _, eventGroup := range eventGroupMap {
-		if err := StartOneEventStreamCheck(eventGroup, eventTimeInterval); err != nil {
+		if err := StartOneEventStreamCheck(eventGroup, eventTimeInterval, showMouse); err != nil {
 			multierror.Append(errResult, err)
 		}
 		time.Sleep(time.Duration(eventGroupTimeInterval) * time.Second)

@@ -36,7 +36,7 @@ func startAction(c *gin.Context) error {
 			return err
 		}
 
-		go action(startMsg.EventGroups, startMsg.EventGroupTimeInterval, startMsg.EventTimeInterval)
+		go action(startMsg.EventGroups, startMsg.EventGroupTimeInterval, startMsg.EventTimeInterval, startMsg.ShowMouse)
 	}
 	c.JSON(http.StatusOK, struct{}{})
 	return nil
@@ -51,11 +51,14 @@ func stopAction(c *gin.Context) error {
 	return nil
 }
 
-func action(eventGroups [][]model.Event, eventGroupTimeInterval, eventTimeInterval int) {
+func action(eventGroups [][]model.Event,
+	eventGroupTimeInterval, eventTimeInterval int,
+	showMouse bool) {
 	logrus.WithFields(logrus.Fields{
 		"eventTimeInterval":      eventTimeInterval,
 		"eventGroupTimeInterval": eventGroupTimeInterval,
 		"eventGreoups":           eventGroups,
+		"showMouse":              showMouse,
 	})
 	newEventGroups := [][]model.Event{}
 	for _, eventGroup := range eventGroups {
@@ -86,7 +89,9 @@ func action(eventGroups [][]model.Event, eventGroupTimeInterval, eventTimeInterv
 	for {
 		started := isStarted.Load()
 		if started == true {
-			if err := imageutil.StartImageCheck(newEventGroups, eventGroupTimeInterval, eventTimeInterval); err != nil {
+			if err := imageutil.StartImageCheck(newEventGroups,
+				eventGroupTimeInterval, eventTimeInterval,
+				showMouse); err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Error("image check error")
