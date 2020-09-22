@@ -67,7 +67,7 @@ func action(eventGroups [][]model.Event,
 		"eventGroupTimeInterval": eventGroupTimeInterval,
 		"eventGreoups":           eventGroups,
 		"showMouse":              showMouse,
-	})
+	}).Info("action request arguments")
 	newEventGroups := [][]model.Event{}
 
 	for _, eventGroup := range eventGroups {

@@ -13,6 +13,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	log.SetFormatter(&log.JSONFormatter{})
 	rootCmd.AddCommand(cmd.ServerCmd)
 }
 
