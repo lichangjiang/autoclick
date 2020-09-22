@@ -44,7 +44,10 @@ func startAction(c *gin.Context) error {
 			return err
 		}
 
-		go action(startMsg.EventGroups, startMsg.EventGroupTimeInterval, startMsg.EventTimeInterval, startMsg.ShowMouse, num+1)
+		go action(startMsg.EventGroups,
+			startMsg.EventGroupTimeInterval, startMsg.EventTimeInterval,
+			startMsg.ShowMouse,
+			num+1)
 	}
 	c.JSON(http.StatusOK, struct{}{})
 	return nil

@@ -107,20 +107,21 @@ func StartOneEventStreamCheck(eventGroup []model.Event,
 				"top":    event.Axis.Top,
 				"right":  event.Axis.Right,
 				"bottom": event.Axis.Bottom,
-			}).Info("event work")
+				"x":      event.X,
+				"y":      event.Y}).Info("event work")
 
-			x := (event.Axis.Left + event.Axis.Right) / 2
-			y := (event.Axis.Top + event.Axis.Bottom) / 2
+			x := event.X
+			y := event.Y
 			ox, oy := robotgo.GetMousePos()
 
 			if showMouse {
-				robotgo.MoveMouse(x, y)
-				robotgo.MouseClick()
+				robotgo.Move(x, y)
+				robotgo.Click()
 				time.Sleep(time.Duration(eventTimeInterval) * time.Second)
-				robotgo.MoveMouse(ox, oy)
+				robotgo.Move(ox, oy)
 			} else {
 				robotgo.MoveClick(x, y)
-				robotgo.MoveMouse(ox, oy)
+				robotgo.Move(ox, oy)
 				time.Sleep(time.Duration(eventTimeInterval) * time.Second)
 			}
 

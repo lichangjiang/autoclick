@@ -6,6 +6,8 @@ type Event struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
 	Axis
+	X     int `json:"x"`
+	Y     int `json:"y"`
 	Image image.Image
 }
 
