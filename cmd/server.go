@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	hook "github.com/robotn/gohook"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	glog "github.com/toorop/gin-logrus"
@@ -33,7 +34,7 @@ func init() {
 
 func handleServer(cmd *cobra.Command, args []string) error {
 
-	/*go func() {
+	go func() {
 
 		channel := hook.Start()
 		for ev := range channel {
@@ -44,7 +45,7 @@ func handleServer(cmd *cobra.Command, args []string) error {
 				}).Info("mouse down")
 			}
 		}
-	}()*/
+	}()
 
 	if isDebug {
 		log.SetLevel(log.DebugLevel)
