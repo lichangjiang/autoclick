@@ -3,7 +3,6 @@ package cmd
 import (
 	"autoclick/internal/controllers"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -48,9 +47,9 @@ func handleServer(cmd *cobra.Command, args []string) error {
 
 	if isDebug {
 		log.SetLevel(log.DebugLevel)
-		log.SetOutput(os.Stdout)
 	} else {
 		controllers.TOKEN = token
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router := gin.Default()
